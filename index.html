@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muskan | AI Engineer & Product Builder</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        premium: {
+                            bg: '#050505',
+                            card: 'rgba(255, 255, 255, 0.03)',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        },
+                        brand: {
+                            purple: '#a855f7',
+                            pink: '#ec4899',
+                            cyan: '#06b6d4'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* --- Canvas Background --- */
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* Ambient Glow Behind Content */
+        .ambient-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
+            background: radial-gradient(circle, rgba(168,85,247,0.05) 0%, rgba(6,182,212,0.03) 40%, rgba(0,0,0,0) 70%);
+            z-index: -1;
+            pointer-events: none;
+            filter: blur(100px);
+        }
+
+        /* --- UI Elements --- */
+        .glass-card {
+            background: var(--tw-colors-premium-card);
+            border: 1px solid var(--tw-colors-premium-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #a855f7, #ec4899, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* --- 3D Flip Cards (Now fully clickable) --- */
+        .perspective-1000 {
+            perspective: 1200px;
+        }
+        .flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        /* When hovering the link (group), flip the inner container */
+        .group:hover .flip-inner {
+            transform: rotateY(180deg);
+        }
+        /* Add colorful glow on hover */
+        .group:hover .flip-back {
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.2);
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+        
+        .flip-front, .flip-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 1.5rem;
+            overflow: hidden;
+        }
+        .flip-back {
+            transform: rotateY(180deg);
+            background: rgba(10, 10, 12, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.4s ease;
+        }
+
+        .tag-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Scroll Reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand-purple/30 selection:text-white">
+
+    <!-- Running Starfield Background -->
+    <canvas id="starfield"></canvas>
+    <div class="ambient-glow"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-black/40 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="text-2xl font-bold tracking-tight text-white hover:text-brand-purple transition-colors">M.</a>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-slate-300">
+                <a href="#about" class="hover:text-white transition-colors">About</a>
+                <a href="#projects" class="hover:text-white transition-colors">Projects</a>
+                <a href="#achievements" class="hover:text-white transition-colors">Achievements</a>
+                <a href="#contact" class="hover:text-white transition-colors">Contact</a>
+            </div>
+            <a href="mailto:squirrelk6755@gmail.com" class="px-5 py-2.5 rounded-full bg-white text-black hover:bg-zinc-200 text-sm font-semibold transition-colors">
+                Let's Talk
+            </a>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 pt-32 pb-24">
+        
+        <!-- HERO SECTION -->
+        <section class="min-h-[85vh] flex flex-col justify-center relative reveal">
+            <h1 class="text-6xl md:text-8xl font-extrabold tracking-tighter mb-6 text-white drop-shadow-lg">
+                Hi, I'm <span class="text-gradient">Muskan</span>
+            </h1>
+            <h2 class="text-2xl md:text-3xl text-slate-300 font-light mb-8 tracking-tight">
+                <span class="text-white font-medium">AI Engineer</span> • Product Builder • Aspiring Founder
+            </h2>
+            <p class="text-lg md:text-xl text-slate-400 max-w-2xl leading-relaxed mb-12">
+                Building AI-powered products that solve real-world problems through intelligent systems, software engineering, and thoughtful design.
+            </p>
+            
+            <div class="flex flex-wrap gap-4 mb-20">
+                <a href="#projects" class="px-8 py-4 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white font-semibold hover:scale-105 transition-transform shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                    View My Work
+                </a>
+                <a href="#contact" class="px-8 py-4 rounded-full glass-card text-white font-medium hover:bg-white/10 transition-all">
+                    Contact Me
+                </a>
+            </div>
+
+            <!-- Stats Strip -->
+            <div class="border-t border-white/10 pt-8 flex flex-wrap gap-x-12 gap-y-6">
+                <div class="flex flex-col">
+                    <span class="text-3xl font-bold text-white">96.25%</span>
+                    <span class="text-sm text-brand-cyan mt-1 font-medium">AI Model Accuracy</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-3xl font-bold text-white">Rank 38</span>
+                    <span class="text-sm text-brand-purple mt-1 font-medium">ECWoC'26</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-3xl font-bold text-white">1st Place</span>
+                    <span class="text-sm text-brand-pink mt-1 font-medium">Ideathon Winner</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-3xl font-bold text-white">8+</span>
+                    <span class="text-sm text-slate-400 mt-1 font-medium">Projects Built</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURED PROJECTS (100% CLICKABLE LINKS) -->
+        <section id="projects" class="py-24 reveal border-t border-white/10">
+            <div class="mb-12">
+                <h3 class="text-sm font-semibold tracking-widest uppercase text-brand-cyan mb-2">Portfolio</h3>
+                <h2 class="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
+                    Featured Projects 
+                    <span class="text-xs font-normal px-3 py-1 rounded-full bg-white/10 text-slate-300 animate-pulse">Hover & Click to Open ↗</span>
+                </h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                
+                <!-- 1. Kidney Stone Detection (Clickable) -->
+                <a href="https://huggingface.co/spaces/Musk123an/kidney-stone-detection" target="_blank" class="block group perspective-1000 h-[360px] cursor-pointer">
+                    <div class="flip-inner">
+                        <div class="flip-front glass-card p-6 flex flex-col justify-center items-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-brand-pink/20 flex items-center justify-center mb-4 text-2xl">🧠</div>
+                            <h4 class="text-xl font-bold mb-2 text-white">Kidney Stone Detection</h4>
+                            <p class="text-slate-400 text-sm mb-4">Medical AI CNN Ensemble</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span class="tag-pill text-brand-pink">96.25% Accuracy</span>
+                            </div>
+                        </div>
+                        <div class="flip-back p-6 relative">
+                            <div>
+                                <h4 class="text-lg font-bold text-brand-pink mb-2">Metrics & Tech</h4>
+                                <ul class="text-sm text-slate-300 space-y-2 mb-4">
+                                    <li>• CNN Ensemble Approach</li>
+                                    <li>• AUC Score: 0.9923</li>
+                                    <li>• Deep Learning</li>
+                                </ul>
+                            </div>
+                            <div class="w-full py-2.5 rounded-lg bg-white/10 text-white text-sm font-semibold text-center mt-auto flex justify-center items-center gap-2">
+                                Open Live App <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 2. AI Chatbot (Clickable) -->
+                <a href="https://ai-chatbot-kvkcnzwdx3z7g9sn93zbzi.streamlit.app" target="_blank" class="block group perspective-1000 h-[360px] cursor-pointer">
+                    <div class="flip-inner">
+                        <div class="flip-front glass-card p-6 flex flex-col justify-center items-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-brand-cyan/20 flex items-center justify-center mb-4 text-2xl">🤖</div>
+                            <h4 class="text-xl font-bold mb-2 text-white">AI Study Assistant</h4>
+                            <p class="text-slate-400 text-sm mb-4">Interactive learning support chatbot</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span class="tag-pill text-brand-cyan">Python + OpenAI</span>
+                            </div>
+                        </div>
+                        <div class="flip-back p-6 relative">
+                            <div>
+                                <h4 class="text-lg font-bold text-brand-cyan mb-2">Features</h4>
+                                <ul class="text-sm text-slate-300 space-y-2 mb-4">
+                                    <li>• Conversational AI tutoring</li>
+                                    <li>• Secure Streamlit Secrets</li>
+                                    <li>• Programming & concepts</li>
+                                </ul>
+                            </div>
+                            <div class="w-full py-2.5 rounded-lg bg-white/10 text-white text-sm font-semibold text-center mt-auto flex justify-center items-center gap-2">
+                                Chat Now <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 3. CSP Solver (Clickable) -->
+                <a href="https://squirrelk6755-ctrl.github.io/CSP-SOLVER/" target="_blank" class="block group perspective-1000 h-[360px] cursor-pointer">
+                    <div class="flip-inner">
+                        <div class="flip-front glass-card p-6 flex flex-col justify-center items-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4 text-2xl">🧩</div>
+                            <h4 class="text-xl font-bold mb-2 text-white">CSP Solver</h4>
+                            <p class="text-slate-400 text-sm mb-4">AI visualizer for Sudoku & Cryptarithmetic</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span class="tag-pill text-green-400">Backtracking</span>
+                            </div>
+                        </div>
+                        <div class="flip-back p-6 relative">
+                            <div>
+                                <h4 class="text-lg font-bold text-green-400 mb-2">Features</h4>
+                                <ul class="text-sm text-slate-300 space-y-2 mb-4">
+                                    <li>• Backtracking & MRV</li>
+                                    <li>• Forward Checking</li>
+                                    <li>• Step-by-step visualization</li>
+                                </ul>
+                            </div>
+                            <div class="w-full py-2.5 rounded-lg bg-white/10 text-white text-sm font-semibold text-center mt-auto flex justify-center items-center gap-2">
+                                Try the Solver <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 4. FinFlow Dashboard (Clickable) -->
+                <a href="https://squirrelk6755-ctrl.github.io/Finance_Dashboard/" target="_blank" class="block group perspective-1000 h-[360px] cursor-pointer">
+                    <div class="flip-inner">
+                        <div class="flip-front glass-card p-6 flex flex-col justify-center items-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 text-2xl">📊</div>
+                            <h4 class="text-xl font-bold mb-2 text-white">FinFlow Dashboard</h4>
+                            <p class="text-slate-400 text-sm mb-4">Interactive financial data analytics UI</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span class="tag-pill text-blue-400">UI/UX</span>
+                            </div>
+                        </div>
+                        <div class="flip-back p-6 relative">
+                            <div>
+                                <h4 class="text-lg font-bold text-blue-400 mb-2">Features</h4>
+                                <ul class="text-sm text-slate-300 space-y-2 mb-4">
+                                    <li>• Clean FinTech UI</li>
+                                    <li>• Interactive Data Charts</li>
+                                    <li>• Zorvyn Intern Assignment</li>
+                                </ul>
+                            </div>
+                            <div class="w-full py-2.5 rounded-lg bg-white/10 text-white text-sm font-semibold text-center mt-auto flex justify-center items-center gap-2">
+                                View Dashboard <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 5. InternTrack AI (Clickable Repo) -->
+                <a href="https://github.com/squirrelk6755-ctrl/interntrack-ai" target="_blank" class="block group perspective-1000 h-[360px] cursor-pointer">
+                    <div class="flip-inner">
+                        <div class="flip-front glass-card p-6 flex flex-col justify-center items-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-brand-purple/20 flex items-center justify-center mb-4 text-2xl">🚀</div>
+                            <h4 class="text-xl font-bold mb-2 text-white">InternTrack AI</h4>
+                            <p class="text-slate-400 text-sm mb-4">Centralized internship management</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span class="tag-pill text-brand-purple">React + Vite</span>
+                            </div>
+                        </div>
+                        <div class="flip-back p-6 relative">
+                            <div>
+                                <h4 class="text-lg font-bold text-brand-purple mb-2">Features</h4>
+                                <ul class="text-sm text-slate-300 space-y-2 mb-4">
+                                    <li>• AI Email Parsing</li>
+                                    <li>• Smart Dashboard Analytics</li>
+                                    <li>• Local Storage Auth</li>
+                                </ul>
+                            </div>
+                            <div class="w-full py-2.5 rounded-lg bg-white/10 text-white text-sm font-semibold text-center mt-auto flex justify-center items-center gap-2">
+                                View GitHub Repo <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 6. HealthTrendTracker (Clickable Repo) -->
+                <a href="https://github.com/squirrelk6755-ctrl/HealthTrendTracker.git" target="_blank" class="block group perspective-1000 h-[360px] cursor-pointer">
+                    <div class="flip-inner">
+                        <div class="flip-front glass-card p-6 flex flex-col justify-center items-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-rose-500/20 flex items-center justify-center mb-4 text-2xl">❤️</div>
+                            <h4 class="text-xl font-bold mb-2 text-white">HealthTrendTracker</h4>
+                            <p class="text-slate-400 text-sm mb-4">Java-based health data management</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span class="tag-pill text-rose-400">Java + SQLite</span>
+                            </div>
+                        </div>
+                        <div class="flip-back p-6 relative">
+                            <div>
+                                <h4 class="text-lg font-bold text-rose-400 mb-2">Features</h4>
+                                <ul class="text-sm text-slate-300 space-y-2 mb-4">
+                                    <li>• Modular Architecture</li>
+                                    <li>• Local Database Storage</li>
+                                    <li>• CRUD Operations</li>
+                                </ul>
+                            </div>
+                            <div class="w-full py-2.5 rounded-lg bg-white/10 text-white text-sm font-semibold text-center mt-auto flex justify-center items-center gap-2">
+                                View Source Code <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 7. PharmaLync (No link - routes to contact) -->
+                <a href="#contact" class="block group perspective-1000 h-[360px] cursor-pointer">
+                    <div class="flip-inner">
+                        <div class="flip-front glass-card p-6 flex flex-col justify-center items-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-brand-cyan/20 flex items-center justify-center mb-4 text-2xl">🏥</div>
+                            <h4 class="text-xl font-bold mb-2 text-white">PharmaLync</h4>
+                            <p class="text-slate-400 text-sm mb-4">Secure digital prescriptions app</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span class="tag-pill text-brand-cyan">Node + RBAC</span>
+                            </div>
+                        </div>
+                        <div class="flip-back p-6 relative">
+                            <div>
+                                <h4 class="text-lg font-bold text-brand-cyan mb-2">Features</h4>
+                                <ul class="text-sm text-slate-300 space-y-2 mb-4">
+                                    <li>• Gemini AI Safety Engine</li>
+                                    <li>• Dual QR Verification</li>
+                                    <li>• Emergency audit mode</li>
+                                </ul>
+                            </div>
+                            <div class="w-full py-2.5 rounded-lg bg-white/10 text-white text-sm font-semibold text-center mt-auto flex justify-center items-center gap-2">
+                                Ask Me About This <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 8. Finsphere (No link - routes to github profile) -->
+                <a href="https://github.com/squirrelk6755-ctrl" target="_blank" class="block group perspective-1000 h-[360px] cursor-pointer">
+                    <div class="flip-inner">
+                        <div class="flip-front glass-card p-6 flex flex-col justify-center items-center text-center">
+                            <div class="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center mb-4 text-2xl">⛓️</div>
+                            <h4 class="text-xl font-bold mb-2 text-white">Finsphere</h4>
+                            <p class="text-slate-400 text-sm mb-4">Hardhat 3 Beta Ethereum Web3 Project</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <span class="tag-pill text-indigo-400">Web3 / viem</span>
+                            </div>
+                        </div>
+                        <div class="flip-back p-6 relative">
+                            <div>
+                                <h4 class="text-lg font-bold text-indigo-400 mb-2">Features</h4>
+                                <ul class="text-sm text-slate-300 space-y-2 mb-4">
+                                    <li>• Node.js native tests</li>
+                                    <li>• Smart Contract Deploy</li>
+                                    <li>• Sepolia Integration</li>
+                                </ul>
+                            </div>
+                            <div class="w-full py-2.5 rounded-lg bg-white/10 text-white text-sm font-semibold text-center mt-auto flex justify-center items-center gap-2">
+                                See on My GitHub <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- SKILLS & TECH STACK -->
+        <section class="py-24 reveal border-t border-white/10">
+            <div class="text-center mb-12">
+                <h3 class="text-sm font-semibold tracking-widest uppercase text-brand-purple mb-2">Capabilities</h3>
+                <h2 class="text-3xl font-bold text-white">Technical Arsenal</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <div class="glass-card p-8 rounded-3xl border-t-2 border-t-brand-pink hover:-translate-y-2 transition-transform">
+                    <h4 class="text-xl font-bold text-white mb-6">AI & Machine Learning</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tag-pill text-white hover:bg-brand-pink/20 transition-colors">PyTorch</span>
+                        <span class="tag-pill text-white hover:bg-brand-pink/20 transition-colors">Computer Vision</span>
+                        <span class="tag-pill text-white hover:bg-brand-pink/20 transition-colors">CNN</span>
+                        <span class="tag-pill text-white hover:bg-brand-pink/20 transition-colors">Hugging Face</span>
+                        <span class="tag-pill text-white hover:bg-brand-pink/20 transition-colors">OpenAI API</span>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-8 rounded-3xl border-t-2 border-t-brand-purple hover:-translate-y-2 transition-transform">
+                    <h4 class="text-xl font-bold text-white mb-6">Software Engineering</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tag-pill text-white hover:bg-brand-purple/20 transition-colors">Python</span>
+                        <span class="tag-pill text-white hover:bg-brand-purple/20 transition-colors">Java & JDBC</span>
+                        <span class="tag-pill text-white hover:bg-brand-purple/20 transition-colors">JavaScript</span>
+                        <span class="tag-pill text-white hover:bg-brand-purple/20 transition-colors">C++</span>
+                        <span class="tag-pill text-white hover:bg-brand-purple/20 transition-colors">Solidity</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-3xl border-t-2 border-t-brand-cyan hover:-translate-y-2 transition-transform">
+                    <h4 class="text-xl font-bold text-white mb-6">Full-Stack & Tools</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tag-pill text-white hover:bg-brand-cyan/20 transition-colors">React.js</span>
+                        <span class="tag-pill text-white hover:bg-brand-cyan/20 transition-colors">Node.js</span>
+                        <span class="tag-pill text-white hover:bg-brand-cyan/20 transition-colors">Tailwind CSS</span>
+                        <span class="tag-pill text-white hover:bg-brand-cyan/20 transition-colors">PostgreSQL</span>
+                        <span class="tag-pill text-white hover:bg-brand-cyan/20 transition-colors">Git</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="py-32 reveal border-t border-white/10 text-center">
+            <h2 class="text-4xl md:text-6xl font-bold tracking-tighter mb-6 text-white">Let's build together.</h2>
+            <p class="text-slate-400 text-lg mb-8 max-w-lg mx-auto">
+                Currently exploring new opportunities, collaborations, and startup ideas. My inbox is always open.
+            </p>
+            
+            <div class="inline-block glass-card rounded-2xl p-6 mb-12 border-brand-purple/30 shadow-[0_0_30px_rgba(168,85,247,0.15)] hover:scale-105 transition-transform">
+                <p class="text-sm text-slate-400 uppercase tracking-widest mb-2">Email Me Directly</p>
+                <a href="mailto:squirrelk6755@gmail.com" class="text-2xl md:text-3xl font-bold text-gradient hover:opacity-80 transition-opacity">
+                    squirrelk6755@gmail.com
+                </a>
+            </div>
+
+            <div class="flex justify-center gap-6">
+                <a href="https://github.com/squirrelk6755-ctrl" target="_blank" class="p-4 rounded-full glass-card hover:bg-white/10 text-white transition-all hover:scale-110 hover:text-brand-purple">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                </a>
+                <a href="https://linkedin.com/in/muskan-26919b349" target="_blank" class="p-4 rounded-full glass-card hover:bg-white/10 text-white transition-all hover:scale-110 hover:text-brand-cyan">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                </a>
+            </div>
+        </section>
+
+        <footer class="pt-12 pb-6 text-center border-t border-white/10">
+            <p class="text-sm text-slate-500">&copy; 2026 Muskan. Engineered with passion.</p>
+        </footer>
+    </main>
+
+    <!-- Starfield Animation Script & Scroll Interactions -->
+    <script>
+        // Smooth Scroll Reveal
+        document.addEventListener('DOMContentLoaded', () => {
+            const revealElements = document.querySelectorAll('.reveal');
+            const revealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+            
+            revealElements.forEach(el => revealObserver.observe(el));
+        });
+
+        // Running Starfield Background (Canvas)
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let stars = [];
+
+        function initCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            
+            stars = [];
+            const numStars = Math.floor((width * height) / 3000); // Responsive star count
+            
+            for(let i = 0; i < numStars; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 1.5 + 0.5,
+                    speed: Math.random() * 0.4 + 0.1,
+                    opacity: Math.random()
+                });
+            }
+        }
+
+        function animateStars() {
+            ctx.clearRect(0, 0, width, height);
+            
+            stars.forEach(star => {
+                // Move stars upwards to simulate forward running movement
+                star.y -= star.speed;
+                star.x -= star.speed * 0.2; // Slight diagonal drift
+                
+                // Reset position if they go off screen
+                if (star.y < 0) {
+                    star.y = height;
+                    star.x = Math.random() * width;
+                }
+                if (star.x < 0) {
+                    star.x = width;
+                    star.y = Math.random() * height;
+                }
+                
+                // Twinkling effect
+                star.opacity += (Math.random() - 0.5) * 0.1;
+                if(star.opacity > 1) star.opacity = 1;
+                if(star.opacity < 0.2) star.opacity = 0.2;
+                
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            requestAnimationFrame(animateStars);
+        }
+
+        // Initialize and handle resize
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        animateStars();
+    </script>
+</body>
+</html>
